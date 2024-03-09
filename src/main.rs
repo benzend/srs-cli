@@ -1,4 +1,6 @@
 use clap::{Parser, Subcommand};
+mod util;
+use util::data_accessor;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -24,21 +26,25 @@ enum Subcommands {
 enum CardCommands {
     Add {
         #[arg(short, long)]
-        front: Option<String>,
+        front: String,
 
         #[arg(short, long)]
-        back: Option<String>,
+        back: String,
 
         #[arg(short, long)]
         collection: String
     },
     Remove {
         #[arg(short, long)]
-        ids: String
+        ids: Vec<String>
     },
     List {
         #[arg(short, long)]
         verbose: bool,
+    },
+    Find {
+        #[arg(short, long)]
+        id: String
     },
     Update {
         #[arg(short, long)]
@@ -63,6 +69,10 @@ enum CollectionCommands {
         #[arg(short, long)]
         verbose: bool
     },
+    Find {
+        #[arg(short, long)]
+        name: String,
+    },
     Remove {
         #[arg(short, long)]
         name: String
@@ -80,32 +90,93 @@ fn main() {
         Some(Subcommands::Cards { commands }) => {
             match commands {
                 CardCommands::List { verbose } => {
-                    println!("TODO: List Cards");
+                    let res = data_accessor::get_cards(None);
+                    match res {
+                        Ok(v) => {
+                            for v in v {
+                                println!("id: {}", v.id.unwrap_or(String::from("null")));
+                                if *verbose {
+                                    println!("front: {}", v.front.unwrap_or(String::from("null")));
+                                }
+                            }
+                        }
+                        Err(e) => println!("failed to get cards: {}", e)
+                    }
+                }
+                CardCommands::Find { id } => {
+                    let res = data_accessor::get_card(id.as_str());
+                    match res {
+                        Ok(v) => println!("front: {}, back: {}", v.front.unwrap_or(String::from("N/A")), v.back.unwrap_or(String::from("N/A"))),
+                        Err(e) => println!("failed to find card: {}", e)
+                    }
                 }
                 CardCommands::Add { front, back, collection } => {
-                    println!("TODO: Add Card");
+                    let res = data_accessor::create_card(collection.as_str(), front.as_str(), back.as_str());
+                    match res {
+                        Ok(v) => println!("created card (id:{})", v),
+                        Err(e) => println!("failed to create card: {}", e)
+                    }
                 }
                 CardCommands::Update { id, front, back } => {
-                    println!("TODO: Update Card");
+                    let res = data_accessor::update_card(id, front.as_deref(), back.as_deref());
+                    match res {
+                        Ok(_) => println!("updated card"),
+                        Err(e) => println!("failed to update card: {}", e)
+                    }
                 }
                 CardCommands::Remove { ids } => {
-                    println!("TODO: Remove Card");
+                    let res = data_accessor::remove_cards(ids.iter().map(AsRef::as_ref).collect());
+                    match res {
+                        Ok(_) => println!("removed cards"),
+                        Err(e) => println!("failed to remove cards: {}", e)
+                    }
                 }
             }
         }
         Some(Subcommands::Collections { commands }) => {
             match commands {
                 CollectionCommands::List { verbose } => {
-                    println!("TODO: List Collections");
+                    let res = data_accessor::get_collections();
+                    match res {
+                        Ok(v) => {
+                            for v in v {
+                                println!("name: {}", v.name);
+                                if *verbose {
+                                    // TODO print more details, like card count, description if
+                                    // there is, etc
+                                }
+                            }
+                        }
+                        Err(e) => println!("failed to get cards: {}", e)
+                    }
+                }
+                CollectionCommands::Find { name } => {
+                    let res = data_accessor::get_collection(name.as_str());
+                    match res {
+                        Ok(v) => println!("found collection! name: {}", v.name),
+                        Err(e) => println!("failed to find collection: {}", e)
+                    }
                 }
                 CollectionCommands::Add { name } => {
-                    println!("TODO: Add Collection");
+                    let res = data_accessor::create_collection(name.as_str());
+                    match res {
+                        Ok(_) => println!("created collection"),
+                        Err(e) => println!("failed to create collection: {}", e)
+                    }
                 }
                 CollectionCommands::Remove { name } => {
-                    println!("TODO: Remove Collection");
+                    let res = data_accessor::remove_collection(name.as_str());
+                    match res {
+                        Ok(_) => println!("removed collection"),
+                        Err(e) => println!("failed to remove collection: {}", e)
+                    }
                 }
                 CollectionCommands::Review { name } => {
-                    println!("TODO: Remove Collection");
+                    let res = data_accessor::review_collection(name.as_str());
+                    match res {
+                        Ok(_) => println!("reviewing collection..."),
+                        Err(e) => println!("failed to review collection: {}", e)
+                    }
                 }
             }
         }
