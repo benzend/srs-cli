@@ -60,10 +60,17 @@ enum CardCommands {
 
 #[derive(Subcommand, Debug)]
 enum CollectionCommands {
-    Add {
-        /// add a collection, the name is used as a string
+    Create {
         #[arg(short, long)]
         name: String
+    },
+    Add {
+        /// the collection to add a datapoint to
+        #[arg(short, long)]
+        name: String,
+
+        #[arg(short, long)]
+        data: String
     },
     List {
         #[arg(short, long)]
@@ -157,8 +164,15 @@ fn main() {
                         Err(e) => println!("failed to find collection: {}", e)
                     }
                 }
-                CollectionCommands::Add { name } => {
+                CollectionCommands::Create { name } => {
                     let res = data_accessor::create_collection(name.as_str());
+                    match res {
+                        Ok(_) => println!("created collection"),
+                        Err(e) => println!("failed to create collection: {}", e)
+                    }
+                }
+                CollectionCommands::Add { name, data } => {
+                    let res = data_accessor::add_to_collection(name.as_str(), data.as_str());
                     match res {
                         Ok(_) => println!("created collection"),
                         Err(e) => println!("failed to create collection: {}", e)
@@ -175,7 +189,7 @@ fn main() {
                     let res = data_accessor::review_collection(name.as_str());
                     match res {
                         Ok(_) => println!("reviewing collection..."),
-                        Err(e) => println!("failed to review collection: {}", e)
+                        Err(e) => println!("failed to review cards: {}", e)
                     }
                 }
             }

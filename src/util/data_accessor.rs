@@ -39,6 +39,10 @@ pub fn create_collection(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+pub fn add_to_collection(name: &str, data: &str) -> Result<(), Box<dyn std::error::Error>> {
+    Ok(())
+}
+
 pub fn remove_collection(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
